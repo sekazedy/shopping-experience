@@ -19,4 +19,6 @@ interface ProductInterface
     public function setVatRate(float $vat): self;
 
     public function getVatRate(): float;
+
+    public function toArray(): array;
 }

@@ -11,4 +11,6 @@ interface MoneyInterface
     public function setEuros(int $euros): self;
 
     public function getEuros(): int;
+
+    public function getFullPrice(): float;
 }
