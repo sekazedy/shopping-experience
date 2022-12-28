@@ -58,6 +58,6 @@ final class Money implements MoneyInterface
 
     public function getFullPrice(): float
     {
-        return (float)sprintf('€%d.%02d', $this->euros, $this->cents);
+        return (float)sprintf('%d.%02d', $this->euros, $this->cents);
     }
 }

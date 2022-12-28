@@ -4,25 +4,51 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit;
 
+use App\Models\Money;
+
+/**
+ * @covers Money
+ */
 final class MoneyTest extends BaseTestConfig
 {
     public function test_setCents(): void
     {
-        $this->assertTrue(true);
+        $cents = 12;
+        $money = new Money();
+        $money->setCents($cents);
+
+        $this->assertEquals($cents, $money->getCents());
     }
 
     public function test_getCents(): void
     {
-        $this->assertTrue(true);
+        $cents = 99;
+        $money = new Money($cents);
+
+        $this->assertEquals($cents, $money->getCents());
     }
 
     public function test_setEuros(): void
     {
-        $this->assertTrue(true);
+        $euros = 3;
+        $money = new Money();
+        $money->setEuros($euros);
+
+        $this->assertEquals($euros, $money->getEuros());
     }
 
     public function test_getEuros(): void
     {
-        $this->assertTrue(true);
+        $euros = 105;
+        $money = new Money(euros: $euros);
+
+        $this->assertEquals($euros, $money->getEuros());
+    }
+
+    public function test_getFullPrice(): void
+    {
+        $money = new Money(4, 20);
+
+        $this->assertEquals(20.04, $money->getFullPrice());
     }
 }
