@@ -11,6 +11,12 @@ final class Money implements MoneyInterface
     private int $cents;
     private int $euros;
 
+    public function __construct(int $cents = 0, int $euros = 0)
+    {
+        $this->cents = $cents;
+        $this->euros = $euros;
+    }
+
 	/**
 	 * @param int $cents
 	 * @return Money

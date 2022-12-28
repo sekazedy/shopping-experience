@@ -16,7 +16,7 @@ final class Product implements ProductInterface
     public const NOT_AVAILABLE = 0;
     public const AVAILABLE = 1;
 
-    private int $id;
+    private ?int $id = null;
 
     private string $name;
     private int $available;
@@ -25,10 +25,20 @@ final class Product implements ProductInterface
 
     private const TABLE = 'products';
 
-    public function __construct(?PDO $pdo = null)
-    {
+    public function __construct(
+        string $name = '',
+        int $available = self::NOT_AVAILABLE,
+        MoneyInterface $price = null,
+        float $vat = 0,
+        ?PDO $pdo = null
+    ) {
         $this->connect($pdo);
         $this->setTable(self::TABLE);
+
+        $this->name = $name;
+        $this->available = $available;
+        $this->price = $price ?? new Money();
+        $this->vat = $vat;
     }
 
     /**
@@ -44,7 +54,7 @@ final class Product implements ProductInterface
     /**
 	 * @return int
 	 */
-	public function getId(): int
+	public function getId(): ?int
     {
 		return $this->id;
 	}

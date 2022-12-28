@@ -16,15 +16,15 @@ class Helpers
         $cents = rand(0, 100);
         $vat = rand(0, 100) * 0.01;
 
-        $money = new Money();
-        $money->setEuros($euros);
-        $money->setCents($cents);
+        $money = new Money($cents, $euros);
 
-        $product = new Product($pdo);
-        $product->setName('test_' . $euros . '_' . $cents);
-        $product->setAvailable(Product::AVAILABLE);
-        $product->setPrice($money);
-        $product->setVatRate($vat);
+        $product = new Product(
+            'test_' . $euros . '_' . $cents,
+            Product::AVAILABLE,
+            $money,
+            $vat,
+            pdo: $pdo
+        );
 
         return $product->create();
     }
