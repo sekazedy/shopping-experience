@@ -6,16 +6,48 @@ namespace App\Models;
 
 use App\Interfaces\MoneyInterface;
 use App\Interfaces\ProductInterface;
+use App\Traits\DatabaseTrait;
+use PDO;
 
 final class Product implements ProductInterface
 {
+    use DatabaseTrait;
+
     public const NOT_AVAILABLE = 0;
     public const AVAILABLE = 1;
+
+    private int $id;
 
     private string $name;
     private int $available;
     private MoneyInterface $price;
     private float $vat;
+
+    private const TABLE = 'products';
+
+    public function __construct(?PDO $pdo = null)
+    {
+        $this->connect($pdo);
+        $this->setTable(self::TABLE);
+    }
+
+    /**
+	 * @param int $id
+	 * @return self
+	 */
+	public function setId(int $id): self
+    {
+		$this->id = $id;
+		return $this;
+	}
+
+    /**
+	 * @return int
+	 */
+	public function getId(): int
+    {
+		return $this->id;
+	}
 
 	/**
 	 * @return string
@@ -103,5 +135,14 @@ final class Product implements ProductInterface
             'price' => $this->price->getFullPrice(),
             'vat' => $this->vat,
         ];
+    }
+
+    public function create(): self
+    {
+        $this->setId(
+            $this->insert($this->toArray())
+        );
+
+        return $this;
     }
 }

@@ -2,11 +2,18 @@ CREATE DATABASE IF NOT EXISTS arkbauer;
 
 USE arkbauer;
 
-CREATE TABLE stock (
+CREATE TABLE products (
   id int NOT NULL AUTO_INCREMENT,
   name VARCHAR(255) NOT NULL,
   available TINYINT(1) UNSIGNED DEFAULT 0,
   price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   vat DECIMAL(3,2) NOT NULL DEFAULT 0.00,
   CONSTRAINT PK_id PRIMARY KEY (id)
+);
+
+CREATE TABLE stock (
+    id int NOT NULL AUTO_INCREMENT,
+    product_id int NOT NULL,
+    quantity int NOT NULL DEFAULT 0,
+    CONSTRAINT PK_id PRIMARY KEY (id)
 );

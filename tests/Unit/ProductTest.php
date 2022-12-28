@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Tests;
+namespace App\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
-
-final class ProductTest extends TestCase
+final class ProductTest extends BaseTestConfig
 {
     public function test_setName(): void
     {

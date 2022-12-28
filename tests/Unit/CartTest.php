@@ -2,11 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Tests;
+namespace App\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
-
-final class CartTest extends TestCase
+final class CartTest extends BaseTestConfig
 {
     public function test_addProduct(): void
     {

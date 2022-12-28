@@ -15,9 +15,14 @@ final class Stock implements StockInterface
 
     private const TABLE = 'stock';
 
+    private int $id;
+    private int $productId;
+    private int $quantity = 0;
+
     public function __construct(?PDO $pdo = null)
     {
         $this->connect($pdo);
+        $this->setTable(self::TABLE);
     }
 
 	/**
@@ -26,7 +31,30 @@ final class Stock implements StockInterface
 	 */
 	public function addProduct(ProductInterface $product): self
     {
-        $this->insert(self::TABLE, $product->toArray());
+        $record = $this->getOne([['=', 'product_id', $product->getId()]]);
+        $quantity = 1;
+
+        if ($record) {
+            $quantity = $record['quantity'] + 1;
+
+            $this->update(
+                ['quantity' => $quantity],
+                [['=', 'id', $record['id']]]
+            );
+
+            $this->id = $record['id'];
+            $this->productId = $record['product_id'];
+            $this->quantity = $quantity;
+        } else {
+            $newId = $this->insert([
+                'product_id' => $product->getId(),
+                'quantity' => $quantity,
+            ]);
+
+            $this->id = $newId;
+            $this->productId = $product->getId();
+            $this->quantity = $quantity;
+        }
 
         return $this;
 	}
@@ -38,6 +66,12 @@ final class Stock implements StockInterface
 	 */
 	public function removeProduct(ProductInterface $product): self
     {
+        if ($this->quantity > 0) {
+            --$this->quantity;
+
+            $this->update(['quantity' => $this->quantity], [['=', 'product_id', $product->getId()]]);
+        }
+
         return $this;
 	}
 
@@ -46,6 +80,14 @@ final class Stock implements StockInterface
 	 */
 	public function getProducts(): array
     {
-        return [];
+        return $this->select();
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getQuantity(): int
+    {
+		return $this->quantity;
 	}
 }

@@ -2,58 +2,77 @@
 
 declare(strict_types=1);
 
-namespace App\Tests;
+namespace App\Tests\Unit;
 
-use App\Models\DatabaseConnection;
-use App\Models\Money;
-use App\Models\Product;
 use App\Models\Stock;
-use PHPUnit\Framework\TestCase;
+use App\Tests\Helpers;
 
 /**
  * @covers Stock
  */
-final class StockTest extends TestCase
+final class StockTest extends BaseTestConfig
 {
-    protected static $pdo;
-
-    public static function setUpBeforeClass(): void
-    {
-        self::$pdo = (new DatabaseConnection())->getPDO();
-        self::$pdo->beginTransaction();
-    }
-
-    public static function tearDownAfterClass(): void
-    {
-        self::$pdo->rollBack();
-        self::$pdo = null;
-    }
-
     public function test_addProductToStock(): void
     {
-        $money = new Money();
-        $money->setEuros(5);
-        $money->setCents(25);
-
-        $product = new Product();
-        $product->setName('test');
-        $product->setAvailable(Product::AVAILABLE);
-        $product->setPrice($money);
-        $product->setVatRate(0.2);
+        $product = Helpers::getNewProduct(self::$pdo);
 
         $stock = new Stock(self::$pdo);
         $stock->addProduct($product);
 
-        $this->assertInstanceOf(Stock::class, $stock);
+        $this->assertEquals(1, $stock->getQuantity());
     }
 
-    public function test_removeProduct(): void
+    public function test_addSameProductToStockTwice(): void
     {
-        $this->assertTrue(true);
+        $product = Helpers::getNewProduct(self::$pdo);
+
+        $stock = new Stock(self::$pdo);
+        $stock->addProduct($product)->addProduct($product);
+
+        $this->assertEquals(2, $stock->getQuantity());
+    }
+
+    public function test_removeSingleProduct(): void
+    {
+        $product = Helpers::getNewProduct(self::$pdo);
+
+        $stock = new Stock(self::$pdo);
+        $stock->addProduct($product);
+        $stock->removeProduct($product);
+
+        $this->assertEquals(0, $stock->getQuantity());
+    }
+
+    public function test_removeOnlyOneOfTwoProducts(): void
+    {
+        $product = Helpers::getNewProduct(self::$pdo);
+
+        $stock = new Stock(self::$pdo);
+        $stock->addProduct($product)->addProduct($product);
+        $stock->removeProduct($product);
+
+        $this->assertEquals(1, $stock->getQuantity());
+    }
+
+    public function test_removeZeroProducts(): void
+    {
+        $product = Helpers::getNewProduct(self::$pdo);
+
+        $stock = new Stock(self::$pdo);
+        $stock->removeProduct($product);
+
+        $this->assertEquals(0, $stock->getQuantity());
     }
 
     public function test_getProducts(): void
     {
-        $this->assertTrue(true);
+        $product = Helpers::getNewProduct(self::$pdo);
+        $product2 = Helpers::getNewProduct(self::$pdo);
+
+        $stock = new Stock(self::$pdo);
+        $stock->addProduct($product)->addProduct($product2);
+        $stockProducts = $stock->getProducts();
+
+        $this->assertNotEmpty($stockProducts);
     }
 }

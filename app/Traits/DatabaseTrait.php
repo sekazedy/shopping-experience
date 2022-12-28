@@ -14,6 +14,15 @@ trait DatabaseTrait
     protected bool $isConnected = false;
     protected PDO $pdo;
 
+    private string $table;
+
+    /**
+     * Either sets pdo parameter to the passed connection OR creates a new one.
+     *
+     * @param PDO|null $pdo
+     * @throws DatabaseConnectionException
+     * @return void
+     */
     protected function connect(?PDO $pdo = null): void
     {
         if ($pdo) {
@@ -32,23 +41,46 @@ trait DatabaseTrait
         }
     }
 
-    protected function select($table, $where = [])
+    protected function setTable(string $table): void
     {
-        // Build the SELECT statement using $this->pdo and execute it
+        $this->table = $table;
     }
 
     /**
-     * $fields argument must be a key-value pairs array
+     * $conditions is an array of arrays, where each child array is a separate condition.
+     * Each condition consists of the three indexes: 0 - operator, 1 - column name, 2 - column value.
+     *
+     * @param array $conditions
+     * @param string $fieldsToSelect
+     * @return array
+     */
+    protected function select(array $conditions = [], string $fieldsToSelect = "*"): array
+    {
+        $where = '';
+        if ($conditions) {
+            $where = 'WHERE ' . implode(' AND ', array_map(function (array $condition) {
+                return "{$condition[1]} {$condition[0]} {$condition[2]}";
+            }, $conditions));
+        }
+
+        $statement = $this->pdo->prepare("SELECT {$fieldsToSelect} FROM {$this->table} {$where}");
+
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * $fields argument must be a key-value pairs array.
      * Example: [
      *     'field_1' => 'value_1',
      *     'field_2' => 'value_2',
      * ];
      *
-     * @param string $table
      * @param array $fields
-     * @return bool
+     * @return int
      */
-    protected function insert(string $table, array $fields): bool
+    protected function insert(array $fields): int
     {
         $fieldNames = array_keys($fields);
         $fieldNamesCommaSeparated = implode(', ', $fieldNames);
@@ -59,11 +91,91 @@ trait DatabaseTrait
         $fieldBinders = implode(', ', $colonPrependedFieldNames);
 
         $statement = $this->pdo->prepare(
-            "INSERT INTO {$table} ({$fieldNamesCommaSeparated}) VALUES({$fieldBinders})"
+            "INSERT INTO {$this->table} ({$fieldNamesCommaSeparated}) VALUES({$fieldBinders})"
         );
 
-        return $statement->execute($fields);
+        $statement->execute($fields);
+
+        return (int)$this->pdo->lastInsertId();
     }
 
-    // Other CRUD methods here
+    /**
+     * $fields argument must be a key-value pairs array.
+     * Example: [
+     *     'field_1' => 'value_1',
+     *     'field_2' => 'value_2',
+     * ];
+     *
+     * $conditions is an array of arrays, where each child array is a separate condition.
+     * Each condition consists of the three indexes: 0 - operator, 1 - column name, 2 - column value.
+     *
+     * @param array $fields
+     * @param array $conditions
+     * @return int
+     */
+    protected function update(array $fields, array $conditions = []): int
+    {
+        $stringifiedFieldsAndValues = [];
+        foreach ($fields as $name => $value) {
+            $stringifiedFieldsAndValues[] = "{$name}={$value}";
+        }
+
+        $setFields = implode(', ', $stringifiedFieldsAndValues);
+
+        $where = '';
+        if ($conditions) {
+            $where = 'WHERE ' .  implode(' AND ', array_map(function (array $condition) {
+                return "{$condition[1]} {$condition[0]} {$condition[2]}";
+            }, $conditions));
+        }
+
+        $statement = $this->pdo->prepare("UPDATE {$this->table} SET {$setFields} {$where}");
+
+        $statement->execute();
+
+        return $statement->rowCount();
+    }
+
+    /**
+     * $conditions is an array of arrays, where each child array is a separate condition.
+     * Each condition consists of the three indexes: 0 - operator, 1 - column name, 2 - column value.
+     * For the delete method $conditions is not optional in order to prevent deleting all data with empty confitions by an accident.
+     *
+     * @param array $conditions
+     * @return bool
+     */
+    protected function delete(array $conditions): bool
+    {
+        $where = implode(' AND ', array_map(function(array $condition) {
+            return "{$condition[1]} {$condition[0]} {$condition[2]}";
+        }, $conditions));
+
+        $statement = $this->pdo->prepare("DELETE FROM {$this->table} WHERE {$where}");
+
+        return $statement->execute();
+    }
+
+    /**
+     * $conditions is an array of arrays, where each child array is a separate condition.
+     * Each condition consists of the three indexes: 0 - operator, 1 - column name, 2 - column value.
+     *
+     * @param array $conditions
+     * @param string $fieldsToSelect
+     * @return array
+     */
+    protected function getOne(array $conditions = [], string $fieldsToSelect = "*"): array
+    {
+        $where = '';
+        if ($conditions) {
+            $where = 'WHERE ' . implode(' AND ', array_map(function (array $condition) {
+                return "{$condition[1]} {$condition[0]} {$condition[2]}";
+            }, $conditions));
+        }
+
+        $statement = $this->pdo->prepare("SELECT {$fieldsToSelect} FROM {$this->table} {$where} LIMIT 1");
+
+        $statement->execute();
+
+        return $statement->fetch(PDO::FETCH_ASSOC) ?: [];
+    }
 }
