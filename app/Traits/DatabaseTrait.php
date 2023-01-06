@@ -57,13 +57,23 @@ trait DatabaseTrait
     protected function select(array $conditions = [], string $fieldsToSelect = "*"): array
     {
         $where = '';
+        $values = [];
         if ($conditions) {
-            $where = 'WHERE ' . implode(' AND ', array_map(function (array $condition) {
-                return "{$condition[1]} {$condition[0]} {$condition[2]}";
-            }, $conditions));
+            $placeholders = [];
+
+            foreach ($conditions as $condition) {
+                $placeholders[] = "{$condition[1]} {$condition[0]} :{$condition[1]}";
+                $values[$condition[1]] = $condition[2];
+            }
+
+            $where = 'WHERE ' . implode(' AND ', $placeholders);
         }
 
         $statement = $this->pdo->prepare("SELECT {$fieldsToSelect} FROM {$this->table} {$where}");
+
+        foreach ($values as $placeholder => $value) {
+            $statement->bindValue($placeholder, $value);
+        }
 
         $statement->execute();
 
@@ -123,13 +133,23 @@ trait DatabaseTrait
         $setFields = implode(', ', $stringifiedFieldsAndValues);
 
         $where = '';
+        $values = [];
         if ($conditions) {
-            $where = 'WHERE ' .  implode(' AND ', array_map(function (array $condition) {
-                return "{$condition[1]} {$condition[0]} {$condition[2]}";
-            }, $conditions));
+            $placeholders = [];
+
+            foreach ($conditions as $condition) {
+                $placeholders[] = "{$condition[1]} {$condition[0]} :{$condition[1]}";
+                $values[$condition[1]] = $condition[2];
+            }
+
+            $where = 'WHERE ' . implode(' AND ', $placeholders);
         }
 
         $statement = $this->pdo->prepare("UPDATE {$this->table} SET {$setFields} {$where}");
+
+        foreach ($values as $placeholder => $value) {
+            $statement->bindValue($placeholder, $value);
+        }
 
         $statement->execute();
 
@@ -146,11 +166,24 @@ trait DatabaseTrait
      */
     protected function delete(array $conditions): bool
     {
-        $where = implode(' AND ', array_map(function(array $condition) {
-            return "{$condition[1]} {$condition[0]} {$condition[2]}";
-        }, $conditions));
+        $where = '';
+        $values = [];
+        if ($conditions) {
+            $placeholders = [];
+
+            foreach ($conditions as $condition) {
+                $placeholders[] = "{$condition[1]} {$condition[0]} :{$condition[1]}";
+                $values[$condition[1]] = $condition[2];
+            }
+
+            $where = implode(' AND ', $placeholders);
+        }
 
         $statement = $this->pdo->prepare("DELETE FROM {$this->table} WHERE {$where}");
+
+        foreach ($values as $placeholder => $value) {
+            $statement->bindValue($placeholder, $value);
+        }
 
         return $statement->execute();
     }
@@ -166,13 +199,23 @@ trait DatabaseTrait
     protected function getOne(array $conditions = [], string $fieldsToSelect = "*"): array
     {
         $where = '';
+        $values = [];
         if ($conditions) {
-            $where = 'WHERE ' . implode(' AND ', array_map(function (array $condition) {
-                return "{$condition[1]} {$condition[0]} {$condition[2]}";
-            }, $conditions));
+            $placeholders = [];
+
+            foreach ($conditions as $condition) {
+                $placeholders[] = "{$condition[1]} {$condition[0]} :{$condition[1]}";
+                $values[$condition[1]] = $condition[2];
+            }
+
+            $where = 'WHERE ' . implode(' AND ', $placeholders);
         }
 
         $statement = $this->pdo->prepare("SELECT {$fieldsToSelect} FROM {$this->table} {$where} LIMIT 1");
+
+        foreach ($values as $placeholder => $value) {
+            $statement->bindValue($placeholder, $value);
+        }
 
         $statement->execute();
 

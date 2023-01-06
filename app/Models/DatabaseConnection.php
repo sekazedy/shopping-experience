@@ -10,7 +10,7 @@ use PDO;
 
 final class DatabaseConnection
 {
-    private $pdo;
+    private PDO $pdo;
 
     public function __construct()
     {
@@ -23,7 +23,10 @@ final class DatabaseConnection
         );
     }
 
-    public function getPDO()
+    /**
+     * @return PDO
+     */
+    public function getPDO(): PDO
     {
         return $this->pdo;
     }

@@ -6,58 +6,25 @@ namespace App\Models;
 
 use App\Interfaces\MoneyInterface;
 use App\Interfaces\ProductInterface;
-use App\Traits\DatabaseTrait;
-use PDO;
 
 final class Product implements ProductInterface
 {
-    use DatabaseTrait;
-
-    public const NOT_AVAILABLE = 0;
-    public const AVAILABLE = 1;
-
-    private ?int $id = null;
-
     private string $name;
     private int $available;
     private MoneyInterface $price;
-    private float $vat;
-
-    private const TABLE = 'products';
+    private float $vat_rate;
 
     public function __construct(
         string $name = '',
-        int $available = self::NOT_AVAILABLE,
+        int $available = 0,
         MoneyInterface $price = null,
-        float $vat = 0,
-        ?PDO $pdo = null
+        float $vatRate = 0
     ) {
-        $this->connect($pdo);
-        $this->setTable(self::TABLE);
-
         $this->name = $name;
         $this->available = $available;
         $this->price = $price ?? new Money();
-        $this->vat = $vat;
+        $this->vat_rate = $vatRate;
     }
-
-    /**
-	 * @param int $id
-	 * @return self
-	 */
-	public function setId(int $id): self
-    {
-		$this->id = $id;
-		return $this;
-	}
-
-    /**
-	 * @return int
-	 */
-	public function getId(): ?int
-    {
-		return $this->id;
-	}
 
 	/**
 	 * @return string
@@ -99,7 +66,7 @@ final class Product implements ProductInterface
 
 	/**
 	 *
-	 * @param \App\Interfaces\MoneyInterface $price
+	 * @param MoneyInterface $price
 	 * @return ProductInterface
 	 */
 	public function setPrice(MoneyInterface $price): self
@@ -110,7 +77,7 @@ final class Product implements ProductInterface
 	}
 
 	/**
-	 * @return \App\Interfaces\MoneyInterface
+	 * @return MoneyInterface
 	 */
 	public function getPrice(): MoneyInterface
     {
@@ -119,12 +86,12 @@ final class Product implements ProductInterface
 
 	/**
 	 *
-	 * @param float $vat
+	 * @param float $vatRate
 	 * @return ProductInterface
 	 */
-	public function setVatRate(float $vat): self
+	public function setVatRate(float $vatRate): self
     {
-        $this->vat = $vat;
+        $this->vat_rate = $vatRate;
 
         return $this;
 	}
@@ -134,25 +101,6 @@ final class Product implements ProductInterface
 	 */
 	public function getVatRate(): float
     {
-        return $this->vat;
+        return $this->vat_rate;
 	}
-
-    public function toArray(): array
-    {
-        return [
-            'name' => $this->name,
-            'available' => $this->available,
-            'price' => $this->price->getFullPrice(),
-            'vat' => $this->vat,
-        ];
-    }
-
-    public function create(): self
-    {
-        $this->setId(
-            $this->insert($this->toArray())
-        );
-
-        return $this;
-    }
 }

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit;
 
+use App\Exceptions\DatabaseErrorException;
 use App\Models\Stock;
 use App\Tests\Helpers;
+
+use function PHPUnit\Framework\assertEquals;
 
 /**
  * @covers Stock
@@ -14,65 +17,46 @@ final class StockTest extends BaseTestConfig
 {
     public function test_addProductToStock(): void
     {
-        $product = Helpers::getNewProduct(self::$pdo);
+        $product = Helpers::getNewProduct();
 
         $stock = new Stock(self::$pdo);
         $stock->addProduct($product);
 
-        $this->assertEquals(1, $stock->getQuantity());
+        $this->assertNotNull($stock->getId());
     }
 
-    public function test_addSameProductToStockTwice(): void
+    public function test_addSameProductToStockTwice_throwsException(): void
     {
-        $product = Helpers::getNewProduct(self::$pdo);
+        $this->expectException(DatabaseErrorException::class);
+        $this->expectExceptionMessage('Error: duplicate product name found!');
+
+        $product = Helpers::getNewProduct();
 
         $stock = new Stock(self::$pdo);
         $stock->addProduct($product)->addProduct($product);
-
-        $this->assertEquals(2, $stock->getQuantity());
     }
 
-    public function test_removeSingleProduct(): void
+    public function test_removeProduct(): void
     {
-        $product = Helpers::getNewProduct(self::$pdo);
+        $product = Helpers::getNewProduct();
 
         $stock = new Stock(self::$pdo);
         $stock->addProduct($product);
         $stock->removeProduct($product);
 
-        $this->assertEquals(0, $stock->getQuantity());
-    }
-
-    public function test_removeOnlyOneOfTwoProducts(): void
-    {
-        $product = Helpers::getNewProduct(self::$pdo);
-
-        $stock = new Stock(self::$pdo);
-        $stock->addProduct($product)->addProduct($product);
-        $stock->removeProduct($product);
-
-        $this->assertEquals(1, $stock->getQuantity());
-    }
-
-    public function test_removeZeroProducts(): void
-    {
-        $product = Helpers::getNewProduct(self::$pdo);
-
-        $stock = new Stock(self::$pdo);
-        $stock->removeProduct($product);
-
-        $this->assertEquals(0, $stock->getQuantity());
+        $this->assertEmpty($stock->getProductDataByName($product->getName()));
     }
 
     public function test_getProducts(): void
     {
-        $product = Helpers::getNewProduct(self::$pdo);
-        $product2 = Helpers::getNewProduct(self::$pdo);
+        $product = Helpers::getNewProduct();
+        $product2 = Helpers::getNewProduct();
 
         $stock = new Stock(self::$pdo);
         $stock->addProduct($product)->addProduct($product2);
         $stockProducts = $stock->getProducts();
 
         $this->assertNotEmpty($stockProducts);
+        $this->assertEquals(2, count($stockProducts));
     }
 }

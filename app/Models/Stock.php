@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Exceptions\DatabaseErrorException;
 use App\Interfaces\ProductInterface;
 use App\Interfaces\StockInterface;
 use App\Traits\DatabaseTrait;
 use PDO;
+use PDOException;
 
 final class Stock implements StockInterface
 {
     use DatabaseTrait;
 
-    private const TABLE = 'stock';
+    private const TABLE = 'stock_products';
 
-    private int $id;
-    private int $productId;
-    private int $quantity = 0;
+    private ?int $id = null;
 
     public function __construct(?PDO $pdo = null)
     {
@@ -31,30 +31,18 @@ final class Stock implements StockInterface
 	 */
 	public function addProduct(ProductInterface $product): self
     {
-        $record = $this->getOne([['=', 'product_id', $product->getId()]]);
-        $quantity = 1;
-
-        if ($record) {
-            $quantity = $record['quantity'] + 1;
-
-            $this->update(
-                ['quantity' => $quantity],
-                [['=', 'id', $record['id']]]
-            );
-
-            $this->id = $record['id'];
-            $this->productId = $record['product_id'];
-            $this->quantity = $quantity;
-        } else {
-            $newId = $this->insert([
-                'product_id' => $product->getId(),
-                'quantity' => $quantity,
-            ]);
-
-            $this->id = $newId;
-            $this->productId = $product->getId();
-            $this->quantity = $quantity;
+        if ($this->duplicatesExist($product)) {
+            throw new DatabaseErrorException('Error: duplicate product name found!');
         }
+
+        $newId = $this->insert([
+            'name' => $product->getName(),
+            'available' => $product->getAvailable(),
+            'price' => $product->getPrice()->getFullPrice(),
+            'vat_rate' => $product->getVatRate(),
+        ]);
+
+        $this->id = $newId;
 
         return $this;
 	}
@@ -66,11 +54,7 @@ final class Stock implements StockInterface
 	 */
 	public function removeProduct(ProductInterface $product): self
     {
-        if ($this->quantity > 0) {
-            --$this->quantity;
-
-            $this->update(['quantity' => $this->quantity], [['=', 'product_id', $product->getId()]]);
-        }
+        $this->delete([['=', 'name', $product->getName()]]);
 
         return $this;
 	}
@@ -83,11 +67,18 @@ final class Stock implements StockInterface
         return $this->select();
 	}
 
-	/**
-	 * @return int
-	 */
-	public function getQuantity(): int
+    public function getId(): ?int
     {
-		return $this->quantity;
-	}
+        return $this->id;
+    }
+
+    public function duplicatesExist(ProductInterface $product): bool
+    {
+        return !empty($this->select([['=', 'name', $product->getName()]]));
+    }
+
+    public function getProductDataByName(string $name): array
+    {
+        return $this->getOne([['=', 'name', $name]]);
+    }
 }

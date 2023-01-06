@@ -31,17 +31,21 @@ final class ProductTest extends BaseTestConfig
 
     public function test_setAvailable(): void
     {
-        $product = new Product();
-        $product->setAvailable(Product::AVAILABLE);
+        $unitsAvailable = 7;
 
-        $this->assertEquals(Product::AVAILABLE, $product->getAvailable());
+        $product = new Product();
+        $product->setAvailable($unitsAvailable);
+
+        $this->assertEquals($unitsAvailable, $product->getAvailable());
     }
 
     public function test_getAvailable(): void
     {
-        $product = new Product(available: Product::AVAILABLE);
+        $unitsAvailable = 12;
 
-        $this->assertEquals(Product::AVAILABLE, $product->getAvailable());
+        $product = new Product(available: $unitsAvailable);
+
+        $this->assertEquals($unitsAvailable, $product->getAvailable());
     }
 
     public function test_setPrice(): void
@@ -61,36 +65,20 @@ final class ProductTest extends BaseTestConfig
 
     public function test_setVatRate(): void
     {
-        $vat = 0.32;
+        $vatRate = 0.32;
 
         $product = new Product();
-        $product->setVatRate($vat);
+        $product->setVatRate($vatRate);
 
-        $this->assertEquals($vat, $product->getVatRate());
+        $this->assertEquals($vatRate, $product->getVatRate());
     }
 
     public function test_getVatRate(): void
     {
-        $vat = 0.45;
+        $vatRate = 0.45;
 
-        $product = new Product(vat: $vat);
+        $product = new Product(vatRate: $vatRate);
 
-        $this->assertEquals($vat, $product->getVatRate());
-    }
-
-    public function test_createNewProduct(): void
-    {
-        $money = new Money();
-        $money->setEuros(22);
-        $money->setCents(56);
-
-        $product = new Product(pdo: self::$pdo);
-        $product->setName('created product 1');
-        $product->setAvailable(Product::AVAILABLE);
-        $product->setPrice($money);
-        $product->setVatRate(0.15);
-        $product->create();
-
-        $this->assertNotNull($product->getId());
+        $this->assertEquals($vatRate, $product->getVatRate());
     }
 }
