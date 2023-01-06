@@ -7,6 +7,7 @@ namespace App\Tests\Unit;
 use App\Exceptions\StockProductNotAvailableException;
 use App\Exceptions\StockProductNotFoundException;
 use App\Models\Cart;
+use App\Models\Money;
 use App\Models\Stock;
 use App\Tests\Helpers;
 
@@ -76,12 +77,51 @@ final class CartTest extends BaseTestConfig
 
     public function test_getProducts(): void
     {
-        $this->assertTrue(true);
+        $product = Helpers::getNewProduct();
+        $product2 = Helpers::getNewProduct();
+
+        $stock = new Stock(self::$pdo);
+        $stock->addProduct($product)->addProduct($product2);
+
+        $cart = new Cart(pdo: self::$pdo);
+        $cart->addProduct($product)->addProduct($product2);
+
+        $products = $cart->getProducts();
+
+        $this->assertNotEmpty($products);
+        $this->assertEquals(2, count($products));
+    }
+
+    public function test_getProducts_returnsEmptyArray(): void
+    {
+        $cart = new Cart(pdo: self::$pdo);
+
+        $products = $cart->getProducts();
+
+        $this->assertEmpty($products);
     }
 
     public function test_getSubtotal(): void
     {
-        $this->assertTrue(true);
+        $product = Helpers::getNewProduct();
+        $product2 = Helpers::getNewProduct();
+
+        $money = new Money(
+            $product->getPrice()->getCents() + $product2->getPrice()->getCents(),
+            $product->getPrice()->getEuros() + $product2->getPrice()->getEuros()
+        );
+
+        $subTotal = $product->getPrice()->getFullPrice()
+            + $product2->getPrice()->getFullPrice();
+
+        $stock = new Stock(self::$pdo);
+        $stock->addProduct($product)->addProduct($product2);
+
+        $cart = new Cart(pdo: self::$pdo);
+        $cart->addProduct($product)->addProduct($product2);
+
+        $this->assertEquals($money, $cart->getSubtotal());
+        $this->assertEquals($subTotal, $cart->getSubtotal()->getFullPrice());
     }
 
     public function test_getVatAmount(): void

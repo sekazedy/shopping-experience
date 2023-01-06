@@ -67,6 +67,35 @@ final class Stock implements StockInterface
         return $this->select();
 	}
 
+    /**
+     * @param int[] $ids
+     * @return array
+     */
+    public function getProductsByIds(array $ids): array
+    {
+        $placeholders = [];
+        $values = [];
+        foreach ($ids as $id) {
+            $placeholder = ':id' . $id;
+            $placeholders[] = $placeholder;
+            $values[$placeholder] = $id;
+        }
+
+        $placeholders = implode(',', $placeholders);
+
+        $statement = $this->pdo->prepare(
+            'SELECT * FROM ' . self::TABLE . ' WHERE id IN (' . $placeholders . ')'
+        );
+
+        foreach ($values as $placeholder => $value) {
+            $statement->bindValue($placeholder, $value);
+        }
+
+        $statement->execute();
+
+        return $statement->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     public function getId(): ?int
     {
         return $this->id;

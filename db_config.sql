@@ -22,5 +22,6 @@ CREATE TABLE cart (
 CREATE TABLE cart_stock_products (
     cart_id int NOT NULL,
     stock_product_id int NOT NULL,
-    quantity int NOT NULL DEFAULT 0
+    quantity int NOT NULL DEFAULT 0,
+    CONSTRAINT UC_cart_product UNIQUE (cart_id, stock_product_id)
 );
