@@ -5,8 +5,8 @@ Small project is related to online e-commerce where product stock is managed so 
 
 ## Installation
 In order to make the code work, you will need to:
-- Have a server running PHP and MySQL
-- Using composer, install the dependencies for the project
+- Have a server running PHP and MySQL;
+- Using composer, install the dependencies for the project;
 ```bash
 composer install
 ```
@@ -18,8 +18,9 @@ composer dump-autoload
 ```bash
 npm install
 ```
-to install front-end dependencies
-- Copy the .env.example file, rename it to .env and change the configuration for your database connection
+to install front-end dependencies (currently no front-end part has been developed);
+- Copy the .env.example file, rename it to .env and change the configuration for your database connection;
+- execute db_config.sql to create a database and the tables for it.
 
 ## Configuration for the server included
 I was developing under the Apache XAMPP server and included .htaccess file with the configuration.
