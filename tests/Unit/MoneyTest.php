@@ -49,6 +49,6 @@ final class MoneyTest extends BaseTestConfig
     {
         $money = new Money(4, 20);
 
-        $this->assertEquals(20.04, $money->getFullPrice());
+        $this->assertEquals(20.04, (float)$money->getFormattedPrice());
     }
 }

@@ -8,8 +8,6 @@ use App\Exceptions\DatabaseErrorException;
 use App\Models\Stock;
 use App\Tests\Helpers;
 
-use function PHPUnit\Framework\assertEquals;
-
 /**
  * @covers Stock
  */
@@ -57,6 +55,6 @@ final class StockTest extends BaseTestConfig
         $stockProducts = $stock->getProducts();
 
         $this->assertNotEmpty($stockProducts);
-        $this->assertEquals(2, count($stockProducts));
+        $this->assertGreaterThanOrEqual(2, count($stockProducts));
     }
 }

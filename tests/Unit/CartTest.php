@@ -27,7 +27,7 @@ final class CartTest extends BaseTestConfig
         $cart = new Cart(pdo: self::$pdo);
         $cart->addProduct($product);
 
-        $this->assertNotNull($cart->getId());
+        $this->assertNotEquals(0, $cart->getId());
         $this->assertEquals($availability - 1, $product->getAvailable());
     }
 
@@ -106,13 +106,24 @@ final class CartTest extends BaseTestConfig
         $product = Helpers::getNewProduct();
         $product2 = Helpers::getNewProduct();
 
-        $money = new Money(
-            $product->getPrice()->getCents() + $product2->getPrice()->getCents(),
-            $product->getPrice()->getEuros() + $product2->getPrice()->getEuros()
+        $productsCents = bcadd(
+            (string)$product->getPrice()->getCents(),
+            (string)$product2->getPrice()->getCents(),
+            2
+        );
+        $productsEuros = bcadd(
+            (string)$product->getPrice()->getEuros(),
+            (string)$product2->getPrice()->getEuros(),
+            2
         );
 
-        $subTotal = $product->getPrice()->getFullPrice()
-            + $product2->getPrice()->getFullPrice();
+        $money = new Money((int)$productsCents, (int)$productsEuros);
+
+        $subTotal = bcadd(
+            $product->getPrice()->getFormattedPrice(),
+            $product2->getPrice()->getFormattedPrice(),
+            2
+        );
 
         $stock = new Stock(self::$pdo);
         $stock->addProduct($product)->addProduct($product2);
@@ -121,16 +132,78 @@ final class CartTest extends BaseTestConfig
         $cart->addProduct($product)->addProduct($product2);
 
         $this->assertEquals($money, $cart->getSubtotal());
-        $this->assertEquals($subTotal, $cart->getSubtotal()->getFullPrice());
+        $this->assertEquals($subTotal, $cart->getSubtotal()->getFormattedPrice());
     }
 
     public function test_getVatAmount(): void
     {
-        $this->assertTrue(true);
+        $product = Helpers::getNewProduct();
+        $product2 = Helpers::getNewProduct();
+
+        $product1VatAmount = bcmul(
+            $product->getPrice()->getFormattedPrice(),
+            (string)$product->getVatRate(),
+            2
+        );
+        $product2VatAmount = bcmul(
+            $product2->getPrice()->getFormattedPrice(),
+            (string)$product2->getVatRate(),
+            2
+        );
+
+        $totalVatAmount = bcadd($product1VatAmount, $product2VatAmount, 2);
+        $cents = bcsub($totalVatAmount, (string)((int)$totalVatAmount), 2) * 100;
+        $euros = $totalVatAmount;
+
+        $money = new Money((int)$cents, (int)$euros);
+
+        $stock = new Stock(self::$pdo);
+        $stock->addProduct($product)->addProduct($product2);
+
+        $cart = new Cart(pdo: self::$pdo);
+        $cart->addProduct($product)->addProduct($product2);
+
+        $this->assertEquals($money, $cart->getVatAmount());
+        $this->assertEquals($totalVatAmount, $cart->getVatAmount()->getFormattedPrice());
     }
 
     public function test_getTotal(): void
     {
-        $this->assertTrue(true);
+        $product = Helpers::getNewProduct();
+        $product2 = Helpers::getNewProduct();
+
+        $product1VatAmount = bcmul(
+            $product->getPrice()->getFormattedPrice(),
+            (string)$product->getVatRate(),
+            2
+        );
+        $product2VatAmount = bcmul(
+            $product2->getPrice()->getFormattedPrice(),
+            (string)$product2->getVatRate(),
+            2
+        );
+
+        $totalVatAmount = bcadd($product1VatAmount, $product2VatAmount, 2);
+        $subTotal = bcadd(
+            $product->getPrice()->getFormattedPrice(),
+            $product2->getPrice()->getFormattedPrice(),
+            2
+        );
+
+        $total = bcadd($totalVatAmount, $subTotal, 2);
+
+        $cents = bcsub($total, (string)((int)$total), 2) * 100;
+        $euros = $total;
+
+        $money = new Money((int)$cents, (int)$euros);
+
+        $stock = new Stock(self::$pdo);
+        $stock->addProduct($product)->addProduct($product2);
+
+        $cart = new Cart(pdo: self::$pdo);
+        $cart->addProduct($product)->addProduct($product2);
+
+        $this->assertEquals($money, $cart->getTotal());
+        $this->assertEquals($total, $cart->getTotal()->getFormattedPrice());
     }
 }

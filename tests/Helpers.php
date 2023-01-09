@@ -12,8 +12,8 @@ class Helpers
     public static function getNewProduct(): Product
     {
         $euros = rand(0, 200);
-        $cents = rand(0, 100);
-        $vat = rand(0, 100) * 0.01;
+        $cents = rand(0, 99);
+        $vatRate = rand(0, 100) * 0.01;
 
         $money = new Money($cents, $euros);
 
@@ -21,7 +21,7 @@ class Helpers
             'test_' . $euros . '_' . $cents,
             5,
             $money,
-            $vat
+            $vatRate
         );
     }
 }

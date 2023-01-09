@@ -38,7 +38,7 @@ final class Stock implements StockInterface
         $newId = $this->insert([
             'name' => $product->getName(),
             'available' => $product->getAvailable(),
-            'price' => $product->getPrice()->getFullPrice(),
+            'price' => $product->getPrice()->getFormattedPrice(),
             'vat_rate' => $product->getVatRate(),
         ]);
 
@@ -109,5 +109,13 @@ final class Stock implements StockInterface
     public function getProductDataByName(string $name): array
     {
         return $this->getOne([['=', 'name', $name]]);
+    }
+
+    public function updateAvailability(array $stockProduct, int $quantity): void
+    {
+        $this->update(
+            ['available' => (int)$stockProduct['available'] + $quantity],
+            [['=', 'name', $stockProduct['name']]]
+        );
     }
 }

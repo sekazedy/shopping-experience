@@ -6,6 +6,9 @@ namespace App\Models;
 
 use App\Interfaces\MoneyInterface;
 
+/**
+ * @method string getFormattedPrice()
+ */
 final class Money implements MoneyInterface
 {
     private int $cents;
@@ -13,8 +16,14 @@ final class Money implements MoneyInterface
 
     public function __construct(int $cents = 0, int $euros = 0)
     {
+        $eurosToAppend = 0;
+        if ($cents > 99) {
+            $eurosToAppend = (int)($cents / 100);
+            $cents %= 100;
+        }
+
         $this->cents = $cents;
-        $this->euros = $euros;
+        $this->euros = $euros + $eurosToAppend;
     }
 
 	/**
@@ -57,10 +66,10 @@ final class Money implements MoneyInterface
 	}
 
     /**
-     * @return float
+     * @return string
      */
-    public function getFullPrice(): float
+    public function getFormattedPrice(): string
     {
-        return (float)sprintf('%d.%02d', $this->euros, $this->cents);
+        return sprintf('%d.%02d', $this->euros, $this->cents);
     }
 }
